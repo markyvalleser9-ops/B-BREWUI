@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIGBREW Cashier</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/cashier.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        <img src="logo.png" alt="User Avatar" class="avatar-image">
+                    </div>
+                    <div class="user-info">
+                        <h1 class="user-name">Cashier</h1>
+                        <p class="user-position">Point of Sale</p>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <!-- Navigation Items -->
+                <div class="nav-section">
+                    <div class="nav-section-title">
+                        <i class="fas fa-cash-register"></i>
+                        <span>Point of Sale</span>
+                    </div>
+                    <a href="#" class="nav-item active" data-page="counter">
+                        <i class="fas fa-mug-hot"></i>
+                        <span>Counter</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="order-history">
+                        <i class="fas fa-receipt"></i>
+                        <span>List of Orders</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="sales-report">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Sales Report</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="products">
+                        <i class="fas fa-box"></i>
+                        <span>Products</span>
+                    </a>
+                </div>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <a href="#" class="nav-item logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Category Tabs (only visible on Counter page) -->
+            <div class="category-tabs" id="categoryTabs">
+                <div class="tabs-container">
+                    <button class="tab-btn active" data-category="milktea">🥤 Milk Tea</button>
+                    <button class="tab-btn" data-category="coffee">☕ Coffee</button>
+                    <button class="tab-btn" data-category="fruit-tea">🍓 Fruit Tea</button>
+                    <button class="tab-btn" data-category="brosty">❄️ Brosty</button>
+                    <button class="tab-btn" data-category="praf">🍧 Praf</button>
+                    <!-- New categories will be inserted here -->
+                    <button class="tab-btn" data-category="add-ons">➕ Add-ons</button>
+                </div>
+            </div>
+
+            <!-- Menu Content Area -->
+            <div class="content-area">
+                <!-- Sales Report Section -->
+                <div class="page-content" id="sales-report">
+                    <h2 class="content-title">Sales Report</h2>
+                    <div class="report-controls">
+                        <div class="control-group">
+                            <label for="reportPeriod">Filter:</label>
+                            <select id="reportPeriod">
+                                <option value="today">Today</option>
+                                <option value="7days">Last 7 Days</option>
+                                <option value="30days">Last 30 Days</option>
+                                <option value="all">All Time</option>
+                            </select>
+                        </div>
+                        <button class="filter-btn" id="refreshReportBtn">Refresh</button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                    <div class="report-summary">
+                        <div class="summary-card">
+                            <h3>Total Sales</h3>
+                            <p id="totalSales">₱0</p>
+                        </div>
+                        <div class="summary-card">
+                            <h3>Total Orders</h3>
+                            <p id="totalOrders">0</p>
+                        </div>
+                        <div class="summary-card">
+                            <h3>Best Seller</h3>
+                            <p id="bestSeller">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Section -->
+                <div class="page-content" id="products">
+                    <h2 class="content-title">Products</h2>
+                    <div class="inventory-container">
+                        <div class="inventory-section">
+                            <h3 class="section-title">Powders</h3>
+                            <div class="inventory-grid" id="powders-grid"></div>
+                        </div>
+                        <div class="inventory-section">
+                            <h3 class="section-title">Supplies</h3>
+                            <div class="inventory-grid" id="supplies-grid"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Menu Section -->
+                <div class="menu-content active" id="milktea">
+                    <div class="category-header milktea-header">
+                        <div class="header-content">
+                            <h2 class="content-title">🥤 Milk Tea</h2>
+                            <div class="price-info">₱29 / ₱39</div>
+                        </div>
+                    </div>
+                    <div class="menu-items">
+                        <div class="menu-item" data-name="Dark Choco" data-price-medio="29" data-price-grande="39">
+                            <div class="item-info">
+                                <span class="item-emoji">🥤</span>
+                                <span class="item-name">Dark Choco</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Cookies & Cream" data-price-medio="29" data-price-grande="39">
+                            <div class="item-info">
+                                <span class="item-emoji">🥤</span>
+                                <span class="item-name">Cookies & Cream</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Okinawa" data-price-medio="29" data-price-grande="39">
+                            <div class="item-info">
+                                <span class="item-emoji">🥤</span>
+                                <span class="item-name">Okinawa</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Wintermelon" data-price-medio="29" data-price-grande="39">
+                            <div class="item-info">
+                                <span class="item-emoji">🥤</span>
+                                <span class="item-name">Wintermelon</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Cheesecake" data-price-medio="29" data-price-grande="39">
+                            <div class="item-info">
+                                <span class="item-emoji">🥤</span>
+                                <span class="item-name">Cheesecake</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Matcha" data-price-medio="29" data-price-grande="39">
+                            <div class="item-info">
+                                <span class="item-emoji">🥤</span>
+                                <span class="item-name">Matcha</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Chocolate" data-price-medio="29" data-price-grande="39">
+                            <div class="item-info">
+                                <span class="item-emoji">🥤</span>
+                                <span class="item-name">Chocolate</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Red Velvet" data-price-medio="29" data-price-grande="39">
+                            <div class="item-info">
+                                <span class="item-emoji">🥤</span>
+                                <span class="item-name">Red Velvet</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Salted Caramel" data-price-medio="29" data-price-grande="39">
+                            <div class="item-info">
+                                <span class="item-emoji">🥤</span>
+                                <span class="item-name">Salted Caramel</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Choco Kisses" data-price-medio="29" data-price-grande="39">
+                            <div class="item-info">
+                                <span class="item-emoji">🥤</span>
+                                <span class="item-name">Choco Kisses</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Taro" data-price-medio="29" data-price-grande="39">
+                            <div class="item-info">
+                                <span class="item-emoji">🥤</span>
+                                <span class="item-name">Taro</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Strawberry" data-price-medio="29" data-price-grande="39">
+                            <div class="item-info">
+                                <span class="item-emoji">🥤</span>
+                                <span class="item-name">Strawberry</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coffee Section -->
+                <div class="menu-content" id="coffee">
+                    <div class="category-header coffee-header">
+                        <div class="header-content">
+                            <h2 class="content-title">☕ Coffee</h2>
+                            <div class="price-info">Iced: ₱29 / ₱39 | Hot: ₱39</div>
+                        </div>
+                    </div>
+                    <div class="menu-items">
+                        <div class="menu-item" data-name="Brusko" data-price-medio="29" data-price-grande="39" data-price-hot="39">
+                            <div class="item-info">
+                                <span class="item-emoji">☕</span>
+                                <span class="item-name">Brusko</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Iced Medio</button>
+                                <button class="add-to-cart" data-size="grande">Iced Grande</button>
+                                <button class="add-to-cart" data-size="hot">Hot</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Mocha" data-price-medio="29" data-price-grande="39" data-price-hot="39">
+                            <div class="item-info">
+                                <span class="item-emoji">☕</span>
+                                <span class="item-name">Mocha</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Iced Medio</button>
+                                <button class="add-to-cart" data-size="grande">Iced Grande</button>
+                                <button class="add-to-cart" data-size="hot">Hot</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Macchiato" data-price-medio="29" data-price-grande="39" data-price-hot="39">
+                            <div class="item-info">
+                                <span class="item-emoji">☕</span>
+                                <span class="item-name">Macchiato</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Iced Medio</button>
+                                <button class="add-to-cart" data-size="grande">Iced Grande</button>
+                                <button class="add-to-cart" data-size="hot">Hot</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Vanilla" data-price-medio="29" data-price-grande="39" data-price-hot="39">
+                            <div class="item-info">
+                                <span class="item-emoji">☕</span>
+                                <span class="item-name">Vanilla</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Iced Medio</button>
+                                <button class="add-to-cart" data-size="grande">Iced Grande</button>
+                                <button class="add-to-cart" data-size="hot">Hot</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Caramel" data-price-medio="29" data-price-grande="39" data-price-hot="39">
+                            <div class="item-info">
+                                <span class="item-emoji">☕</span>
+                                <span class="item-name">Caramel</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Iced Medio</button>
+                                <button class="add-to-cart" data-size="grande">Iced Grande</button>
+                                <button class="add-to-cart" data-size="hot">Hot</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Matcha" data-price-medio="29" data-price-grande="39" data-price-hot="39">
+                            <div class="item-info">
+                                <span class="item-emoji">☕</span>
+                                <span class="item-name">Matcha</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Iced Medio</button>
+                                <button class="add-to-cart" data-size="grande">Iced Grande</button>
+                                <button class="add-to-cart" data-size="hot">Hot</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Fudge" data-price-medio="29" data-price-grande="39" data-price-hot="39">
+                            <div class="item-info">
+                                <span class="item-emoji">☕</span>
+                                <span class="item-name">Fudge</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Iced Medio</button>
+                                <button class="add-to-cart" data-size="grande">Iced Grande</button>
+                                <button class="add-to-cart" data-size="hot">Hot</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Spanish Latte" data-price-medio="29" data-price-grande="39" data-price-hot="39">
+                            <div class="item-info">
+                                <span class="item-emoji">☕</span>
+                                <span class="item-name">Spanish Latte</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Iced Medio</button>
+                                <button class="add-to-cart" data-size="grande">Iced Grande</button>
+                                <button class="add-to-cart" data-size="hot">Hot</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fruit Tea Section -->
+                <div class="menu-content" id="fruit-tea">
+                    <div class="category-header fruit-tea-header">
+                        <div class="header-content">
+                            <h2 class="content-title">🍓 Fruit Tea</h2>
+                            <div class="price-info">₱29 / ₱39</div>
+                        </div>
+                    </div>
+                    <div class="menu-items">
+                        <div class="menu-item" data-name="Lychee" data-price-medio="29" data-price-grande="39">
+                            <div class="item-info">
+                                <span class="item-emoji">🍓</span>
+                                <span class="item-name">Lychee</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Green Apple" data-price-medio="29" data-price-grande="39">
+                            <div class="item-info">
+                                <span class="item-emoji">🍓</span>
+                                <span class="item-name">Green Apple</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Blueberry" data-price-medio="29" data-price-grande="39">
+                            <div class="item-info">
+                                <span class="item-emoji">🍓</span>
+                                <span class="item-name">Blueberry</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Lemon" data-price-medio="29" data-price-grande="39">
+                            <div class="item-info">
+                                <span class="item-emoji">🍓</span>
+                                <span class="item-name">Lemon</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Strawberry" data-price-medio="29" data-price-grande="39">
+                            <div class="item-info">
+                                <span class="item-emoji">🍓</span>
+                                <span class="item-name">Strawberry</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Kiwi" data-price-medio="29" data-price-grande="39">
+                            <div class="item-info">
+                                <span class="item-emoji">🍓</span>
+                                <span class="item-name">Kiwi</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Mango" data-price-medio="29" data-price-grande="39">
+                            <div class="item-info">
+                                <span class="item-emoji">🍓</span>
+                                <span class="item-name">Mango</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Honey Peach" data-price-medio="29" data-price-grande="39">
+                            <div class="item-info">
+                                <span class="item-emoji">🍓</span>
+                                <span class="item-name">Honey Peach</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Brosty Section -->
+                <div class="menu-content" id="brosty">
+                    <div class="category-header brosty-header">
+                        <div class="header-content">
+                            <h2 class="content-title">❄️ Brosty</h2>
+                            <div class="price-info">₱49 / ₱59</div>
+                        </div>
+                    </div>
+                    <div class="menu-items">
+                        <div class="menu-item" data-name="Lychee" data-price-medio="49" data-price-grande="59">
+                            <div class="item-info">
+                                <span class="item-emoji">❄️</span>
+                                <span class="item-name">Lychee</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Green Apple" data-price-medio="49" data-price-grande="59">
+                            <div class="item-info">
+                                <span class="item-emoji">❄️</span>
+                                <span class="item-name">Green Apple</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Blueberry" data-price-medio="49" data-price-grande="59">
+                            <div class="item-info">
+                                <span class="item-emoji">❄️</span>
+                                <span class="item-name">Blueberry</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Lemon" data-price-medio="49" data-price-grande="59">
+                            <div class="item-info">
+                                <span class="item-emoji">❄️</span>
+                                <span class="item-name">Lemon</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Strawberry" data-price-medio="49" data-price-grande="59">
+                            <div class="item-info">
+                                <span class="item-emoji">❄️</span>
+                                <span class="item-name">Strawberry</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Kiwi" data-price-medio="49" data-price-grande="59">
+                            <div class="item-info">
+                                <span class="item-emoji">❄️</span>
+                                <span class="item-name">Kiwi</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Mango" data-price-medio="49" data-price-grande="59">
+                            <div class="item-info">
+                                <span class="item-emoji">❄️</span>
+                                <span class="item-name">Mango</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Honey Peach" data-price-medio="49" data-price-grande="59">
+                            <div class="item-info">
+                                <span class="item-emoji">❄️</span>
+                                <span class="item-name">Honey Peach</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Praf Section -->
+                <div class="menu-content" id="praf">
+                    <div class="category-header praf-header">
+                        <div class="header-content">
+                            <h2 class="content-title">🍧 Praf</h2>
+                            <div class="price-info">₱49 / ₱59</div>
+                        </div>
+                    </div>
+                    <div class="menu-items">
+                        <div class="menu-item" data-name="Coffee Jelly" data-price-medio="49" data-price-grande="59">
+                            <div class="item-info">
+                                <span class="item-emoji">🍧</span>
+                                <span class="item-name">Coffee Jelly</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Caramel Macchiato" data-price-medio="49" data-price-grande="59">
+                            <div class="item-info">
+                                <span class="item-emoji">🍧</span>
+                                <span class="item-name">Caramel Macchiato</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Mocha" data-price-medio="49" data-price-grande="59">
+                            <div class="item-info">
+                                <span class="item-emoji">🍧</span>
+                                <span class="item-name">Mocha</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Vanilla Coffee" data-price-medio="49" data-price-grande="59">
+                            <div class="item-info">
+                                <span class="item-emoji">🍧</span>
+                                <span class="item-name">Vanilla Coffee</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Java Chip" data-price-medio="49" data-price-grande="59">
+                            <div class="item-info">
+                                <span class="item-emoji">🍧</span>
+                                <span class="item-name">Java Chip</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Cheesecake" data-price-medio="49" data-price-grande="59">
+                            <div class="item-info">
+                                <span class="item-emoji">🍧</span>
+                                <span class="item-name">Cheesecake</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Cookies & Cream" data-price-medio="49" data-price-grande="59">
+                            <div class="item-info">
+                                <span class="item-emoji">🍧</span>
+                                <span class="item-name">Cookies & Cream</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Creamy Avocado" data-price-medio="49" data-price-grande="59">
+                            <div class="item-info">
+                                <span class="item-emoji">🍧</span>
+                                <span class="item-name">Creamy Avocado</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Chocolate" data-price-medio="49" data-price-grande="59">
+                            <div class="item-info">
+                                <span class="item-emoji">🍧</span>
+                                <span class="item-name">Chocolate</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Matcha" data-price-medio="49" data-price-grande="59">
+                            <div class="item-info">
+                                <span class="item-emoji">🍧</span>
+                                <span class="item-name">Matcha</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Strawberry" data-price-medio="49" data-price-grande="59">
+                            <div class="item-info">
+                                <span class="item-emoji">🍧</span>
+                                <span class="item-name">Strawberry</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Taro" data-price-medio="49" data-price-grande="59">
+                            <div class="item-info">
+                                <span class="item-emoji">🍧</span>
+                                <span class="item-name">Taro</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="medio">Medio</button>
+                                <button class="add-to-cart" data-size="grande">Grande</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add-ons Section -->
+                <div class="menu-content" id="add-ons">
+                    <div class="category-header add-ons-header">
+                        <div class="header-content">
+                            <h2 class="content-title">➕ Add-ons</h2>
+                            <div class="price-info">₱9 each</div>
+                        </div>
+                    </div>
+                    <div class="menu-items">
+                        <div class="menu-item" data-name="Pearl" data-price="9">
+                            <div class="item-info">
+                                <span class="item-emoji">➕</span>
+                                <span class="item-name">Pearl</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="regular">Add</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Crystal" data-price="9">
+                            <div class="item-info">
+                                <span class="item-emoji">➕</span>
+                                <span class="item-name">Crystal</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="regular">Add</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Cream Cheese" data-price="9">
+                            <div class="item-info">
+                                <span class="item-emoji">➕</span>
+                                <span class="item-name">Cream Cheese</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="regular">Add</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Cream Puff" data-price="9">
+                            <div class="item-info">
+                                <span class="item-emoji">➕</span>
+                                <span class="item-name">Cream Puff</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="regular">Add</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Cheesecake" data-price="9">
+                            <div class="item-info">
+                                <span class="item-emoji">➕</span>
+                                <span class="item-name">Cheesecake</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="regular">Add</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Crushed Oreo" data-price="9">
+                            <div class="item-info">
+                                <span class="item-emoji">➕</span>
+                                <span class="item-name">Crushed Oreo</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="regular">Add</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Coffee Jelly" data-price="9">
+                            <div class="item-info">
+                                <span class="item-emoji">➕</span>
+                                <span class="item-name">Coffee Jelly</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="regular">Add</button>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-name="Whipped Cream" data-price="9">
+                            <div class="item-info">
+                                <span class="item-emoji">➕</span>
+                                <span class="item-name">Whipped Cream</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="add-to-cart" data-size="regular">Add</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order History Section -->
+                <div class="page-content" id="order-history">
+                    <h2 class="content-title">List of Orders</h2>
+                    <div class="history-container">
+                        <div class="history-filters">
+                            <div class="filter-group">
+                                <label for="dateFilter">Filter by Date:</label>
+                                <input type="date" id="dateFilter" class="date-input">
+                            </div>
+                            <div class="filter-group">
+                                <label for="orderIdSearch">Search Order ID:</label>
+                                <input type="text" id="orderIdSearch" class="order-id-input" placeholder="Enter Order ID">
+                            </div>
+                            <button class="filter-btn" id="filterBtn">Apply Date Filter</button>
+                            <button class="filter-btn" id="searchOrderIdBtn">Search ID</button>
+                            <button class="filter-btn" id="clearFilterBtn">Clear All</button>
+                            <button class="filter-btn" id="downloadPdfBtn">Download PDF</button>
+                        </div>
+                        <div class="history-list" id="historyList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cart Section -->
+        <div class="cart-section expanded" id="cartSection">
+            <div class="cart-container">
+                <h2 class="cart-title">
+                    <i class="fas fa-shopping-cart"></i> Your Cart
+                </h2>
+                <div class="cart-items" id="cartItems">
+                    <div class="empty-cart">Your cart is empty</div>
+                </div>
+                <div class="cart-summary">
+                    <div class="cart-total">
+                        <span>Total:</span>
+                        <span class="total-price" id="totalPrice">₱0</span>
+                    </div>
+                    <button class="checkout-btn" id="checkoutBtn">Checkout</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Cart Icon -->
+        <div class="floating-cart" id="floatingCart">
+            <i class="fas fa-shopping-cart"></i>
+            <span class="cart-badge" id="cartBadge">0</span>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal-overlay" id="logoutModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <i class="fas fa-sign-out-alt modal-icon"></i>
+                <h3 class="modal-title">Confirm Logout</h3>
+            </div>
+            <div class="modal-body">
+                <p class="modal-message">Are you sure you want to logout?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn cancel-btn" id="logoutNoBtn">No</button>
+                <button class="modal-btn confirm-btn" id="logoutYesBtn">Yes</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="checkoutModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <i class="fas fa-receipt modal-icon"></i>
+                <h3 class="modal-title">Confirm Checkout</h3>
+            </div>
+            <div class="modal-body">
+                <div class="order-summary" id="orderSummary"></div>
+                <div class="order-total">
+                    <span>Total Amount:</span>
+                    <span class="total-amount" id="totalAmount">₱0</span>
+                </div>
+                
+                <!-- Payment Mode Selection -->
+                <div class="payment-mode-section">
+                    <h4>Payment Mode</h4>
+                    <div class="payment-mode-options">
+                        <label class="payment-mode-option">
+                            <input type="radio" name="paymentMode" value="cash" checked>
+                            <span class="payment-mode-label">
+                                <i class="fas fa-money-bill-wave"></i>
+                                Cash
+                            </span>
+                        </label>
+                        <label class="payment-mode-option">
+                            <input type="radio" name="paymentMode" value="gcash">
+                            <span class="payment-mode-label">
+                                <i class="fas fa-mobile-alt"></i>
+                                GCash
+                            </span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Cash Payment Section -->
+                <div class="cash-payment-section" id="cashPaymentSection">
+                    <div class="payment-info">
+                        <div class="payment-row">
+                            <span>Cash Received:</span>
+                            <input type="number" id="modalCashAmount" placeholder="Enter amount" min="0" step="1">
+                        </div>
+                        <div class="payment-row change-row">
+                            <span>Change:</span>
+                            <span id="modalChangeAmount">₱0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- GCash Payment Section -->
+                <div class="gcash-payment-section" id="gcashPaymentSection" style="display: none;">
+                    <div class="payment-info">
+                        <div class="payment-row">
+                            <span>Amount Paid:</span>
+                            <input type="number" id="gcashAmount" placeholder="Enter amount" min="0" step="1">
+                        </div>
+                        <div class="payment-row">
+                            <span>Reference Number:</span>
+                            <input type="text" id="gcashReference" placeholder="Enter reference number">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn cancel-btn" id="cancelBtn">Cancel</button>
+                <button class="modal-btn confirm-btn" id="confirmBtn">Confirm Order</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="successModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <i class="fas fa-check-circle modal-icon"></i>
+                <h3 class="modal-title">Order Successful</h3>
+            </div>
+            <div class="modal-body">
+                <p class="modal-message">Your order has been placed successfully!</p>
+                <p class="order-number">Order Number: <span id="orderNumber"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn" id="okBtn">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="receiptModal">
+        <div class="modal-container receipt-container">
+            <div class="modal-header">
+                <i class="fas fa-receipt modal-icon"></i>
+                <h3 class="modal-title">Order Receipt</h3>
+            </div>
+            <div class="modal-body">
+                <div class="receipt-content" id="receiptContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary-btn" id="printReceiptBtn">
+                    <i class="fas fa-print"></i> Print
+                </button>
+                <button class="modal-btn secondary-btn" id="downloadReceiptBtn">
+                    <i class="fas fa-download"></i> Download
+                </button>
+                <button class="modal-btn confirm-btn" id="orderAgainBtn">Order Again</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div class="modal-overlay" id="orderDetailsModal">
+        <div class="modal-container order-details-modal">
+            <div class="modal-header">
+                <i class="fas fa-receipt modal-icon"></i>
+                <h3 class="modal-title">Order Details</h3>
+                <button class="close-modal-btn" id="closeOrderDetailsBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="order-details-content" id="orderDetailsContent">
+                    <!-- Order details will be populated here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary-btn" id="printOrderBtn">
+                    <i class="fas fa-print"></i> Print
+                </button>
+                <button class="modal-btn secondary-btn" id="downloadOrderBtn">
+                    <i class="fas fa-download"></i> Download
+                </button>
+                <button class="modal-btn confirm-btn" id="closeOrderDetailsModalBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/cashier.js"></script>
+</body>
+</html>
